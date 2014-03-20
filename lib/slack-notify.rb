@@ -22,8 +22,9 @@ module SlackNotify
     end
 
     def notify(text, channel = nil)
+      base_payload = base_payload_options.merge({ text: text })
       format_channel(channel).each do |chan|
-        send_payload(text: text, username: @username, channel: chan)
+        send_payload(base_payload.merge(channel: chan))
       end
 
       true
@@ -56,6 +57,15 @@ module SlackNotify
           raise SlackNotify::Error
         else
           raise SlackNotify::Error.new(response.body)
+        end
+      end
+    end
+    
+    def base_payload_options
+      @base_payload_options ||= begin
+        { username: @username }.tap do |base_options|
+          base_options[:icon_url] = options[:icon_url] if options[:icon_url]
+          base_options[:icon_emoji] = options[:icon_emoji] if options[:icon_emoji]
         end
       end
     end
